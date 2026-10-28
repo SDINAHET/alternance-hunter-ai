@@ -12,4 +12,15 @@ spring:
     open-in-view: false
 hunter:
   ollama-url: ${OLLAMA_URL:http://localhost:11434}
-  ollama-model: ${OLLAMA_MODEL:qwen2.5:7b}
+  ollama-model: ${OLLAMA_MODEL:llama3.1:8b}
+  ollama-code-model: ${OLLAMA_CODE_MODEL:qwen3-coder:latest}
+  ollama-embedding-model: ${OLLAMA_EMBED_MODEL:nomic-embed-text:latest}
+  france-travail:
+    client-id: ${FRANCE_TRAVAIL_CLIENT_ID:}
+    client-secret: ${FRANCE_TRAVAIL_CLIENT_SECRET:}
+    scope: ${FRANCE_TRAVAIL_SCOPE:api_offresdemploiv2 o2dsoffre}
+  scheduler:
+    enabled: ${SCHEDULER_ENABLED:false}
+    keywords: ${SCHEDULER_KEYWORDS:développeur}
+    department: ${SCHEDULER_DEPARTMENT:56}
+    cron: ${SCHEDULER_CRON:0 0 */6 * * *}

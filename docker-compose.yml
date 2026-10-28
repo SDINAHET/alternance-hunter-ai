@@ -9,7 +9,7 @@ services:
     volumes: [postgres_data:/var/lib/postgresql/data]
     ports: ["127.0.0.1:5436:5432"]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U hunter -d hunter"]
+      test: ["CMD-SHELL","pg_isready -U hunter -d hunter"]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -22,8 +22,16 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
       OLLAMA_URL: ${OLLAMA_DOCKER_URL:-http://host.docker.internal:11434}
       OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.1:8b}
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      OLLAMA_CODE_MODEL: ${OLLAMA_CODE_MODEL:-qwen3-coder:latest}
+      OLLAMA_EMBED_MODEL: ${OLLAMA_EMBED_MODEL:-nomic-embed-text:latest}
+      FRANCE_TRAVAIL_CLIENT_ID: ${FRANCE_TRAVAIL_CLIENT_ID:-}
+      FRANCE_TRAVAIL_CLIENT_SECRET: ${FRANCE_TRAVAIL_CLIENT_SECRET:-}
+      FRANCE_TRAVAIL_SCOPE: ${FRANCE_TRAVAIL_SCOPE:-api_offresdemploiv2 o2dsoffre}
+      SCHEDULER_ENABLED: ${SCHEDULER_ENABLED:-false}
+      SCHEDULER_KEYWORDS: ${SCHEDULER_KEYWORDS:-développeur}
+      SCHEDULER_DEPARTMENT: ${SCHEDULER_DEPARTMENT:-56}
+      SCHEDULER_CRON: ${SCHEDULER_CRON:-0 0 */6 * * *}
+    extra_hosts: ["host.docker.internal:host-gateway"]
     ports: ["127.0.0.1:8099:8099"]
     depends_on:
       postgres: {condition: service_healthy}
