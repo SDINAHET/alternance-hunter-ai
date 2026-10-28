@@ -1,0 +1,44 @@
+name: alternance-hunter
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: hunter
+      POSTGRES_USER: hunter
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Configure DB_PASSWORD in .env}
+    volumes: [hunter_pgdata:/var/lib/postgresql/data]
+    ports: ["127.0.0.1:5436:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hunter -d hunter"]
+      interval: 5s
+      retries: 20
+  ollama:
+    image: ollama/ollama:latest
+    volumes: [hunter_models:/root/.ollama]
+    ports: ["127.0.0.1:11434:11434"]
+  ollama-init:
+    image: curlimages/curl:8.12.1
+    depends_on: [ollama]
+    environment:
+      MODEL: ${OLLAMA_MODEL:-qwen2.5:7b}
+    entrypoint: ["/bin/sh", "-c"]
+    command: ['until curl -fsS http://ollama:11434/api/tags >/dev/null; do sleep 3; done; curl -f --max-time 3600 http://ollama:11434/api/pull -H "Content-Type: application/json" -d "{\"name\":\"$$MODEL\",\"stream\":false}"']
+  backend:
+    build: ./backend
+    environment:
+      SERVER_PORT: 8099
+      DB_URL: jdbc:postgresql://db:5432/hunter
+      DB_USER: hunter
+      DB_PASSWORD: ${DB_PASSWORD:?Configure DB_PASSWORD in .env}
+      OLLAMA_URL: http://ollama:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5:7b}
+    ports: ["127.0.0.1:8099:8099"]
+    depends_on:
+      db: {condition: service_healthy}
+  frontend:
+    build: ./frontend
+    ports: ["127.0.0.1:5173:80"]
+    depends_on: [backend]
+volumes:
+  hunter_pgdata:
+  hunter_models:
