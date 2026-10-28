@@ -1,45 +1,61 @@
 # Alternance Hunter AI
 
-Application locale de prospection d'alternance Bac+5 EADL, organisée en monorepo professionnel.
+Monorepo de prospection d'alternance Bac+5 EADL.
 
-## Structure
+- `backend/` : Java 21 / Spring Boot, couches controller, service, model, repository, dto.
+- `frontend/` : React / TypeScript, composants, services, types, styles CSS séparés.
+- `docker-compose.yml` : PostgreSQL 16, backend, frontend.
+- `start.sh` : démarrage simplifié de toute la stack.
+- **Ollama n'est pas conteneurisé** : l'application réutilise ton modèle 8B déjà installé sur le PC. Aucun téléchargement de modèle n'est effectué.
 
-- `backend/` : Java 21, Spring Boot, packages `controller/`, `service/`, `model/`, `repository/`, `dto/`
-- `frontend/` : React + TypeScript, composants, services API, types, CSS séparé
-- `docker-compose.yml` : PostgreSQL 16, Ollama, API et interface
-- `.env.example` : variables à configurer, **sans secrets**
+## Installation Windows / WSL2
 
-## Démarrer sur Windows + WSL2
-
-Docker Desktop doit être installé et son intégration WSL2 activée.
+Prérequis : Docker Desktop + intégration WSL2, Docker Compose v2, curl et Ollama déjà installé avec au moins un modèle (`ollama list`).
 
 ```bash
 git clone https://github.com/SDINAHET/alternance-hunter-ai.git
 cd alternance-hunter-ai
 cp .env.example .env
 nano .env
-docker compose config
-docker compose up --build -d
-docker compose ps
+bash start.sh
 ```
 
-Remplacer `DB_PASSWORD` dans `.env` par un mot de passe fort.
+Dans `.env`, remplacer `DB_PASSWORD` par un mot de passe fort. Facultatif : renseigner `OLLAMA_MODEL` avec le nom exact affiché par `ollama list`. Si laissé vide, le script tente de sélectionner le premier modèle existant.
 
-- Interface : http://localhost:5173
+Ports :
+- Frontend : http://localhost:5173
 - Backend : http://localhost:8099/api/health
 - PostgreSQL : 127.0.0.1:5436
-- Ollama : 127.0.0.1:11434
+- Ollama existant : http://localhost:11434
 
-Premier démarrage : compilation Java, images Docker et téléchargement de `qwen2.5:7b` (plusieurs Go).
+`bash start.sh` fonctionne même si le fichier n'a pas le bit exécutable après le clone. Pour utiliser `./start.sh`, lancer une fois `chmod +x start.sh`.
 
-Vérifier : `docker compose logs -f backend`, `docker compose logs -f ollama-init`.
+## Connexion à Ollama installé sur le PC
 
-Arrêt sans perte de données : `docker compose down`. Ne pas exécuter `docker compose down -v` sauf si vous souhaitez supprimer la base et les modèles.
+Le backend Docker contacte `http://host.docker.internal:11434`. Sur Docker Desktop, ce nom pointe vers la machine hôte. **Attention** : si Ollama n'écoute que sur `127.0.0.1` et que Docker n'arrive pas à le joindre, le frontend et PostgreSQL démarreront mais l'analyse IA échouera.
+
+Tester depuis le conteneur backend :
+```bash
+docker compose exec backend sh -c 'curl -fsS http://host.docker.internal:11434/api/tags || true'
+```
+(L'image Java minimale peut ne pas inclure curl ; utiliser une image curl sur le même réseau si nécessaire.)
+
+Pour rendre Ollama accessible aux conteneurs, adapter sa configuration d'écoute réseau **en limitant l'accès par le pare-feu à l'hôte et au réseau Docker**. Ne jamais exposer l'API Ollama sur Internet. Sous Windows, la configuration varie selon que le serveur Ollama tourne dans Windows ou WSL2.
+
+## Dépannage
+
+```bash
+docker compose ps
+docker compose logs --tail=100 backend
+docker compose logs --tail=100 frontend
+ollama list
+curl http://localhost:8099/api/health
+```
+
+Arrêter sans effacer les données : `docker compose down`. **Ne pas utiliser `down -v`** sauf pour supprimer volontairement la base PostgreSQL.
 
 ## Confidentialité et limites
 
-Les secrets restent dans `.env`, ignoré par Git. Aucun CV privé dans le dépôt. Les ports Docker sont liés à 127.0.0.1 côté hôte.
+`.env` est ignoré par Git ; ne pas publier de CV personnel, emails privés ou secrets. Les ports Docker sont publiés sur localhost. La recherche d'entreprises et la sauvegarde PostgreSQL sont implémentées ; l'enrichissement de contacts, les offres France Travail et l'envoi des candidatures restent à développer.
 
-Cette première version monorepo comprend la recherche d'entreprises, la persistance PostgreSQL et l'analyse Ollama à la demande. La collecte automatique d'offres, la vérification des emails professionnels et l'envoi de candidatures restent à développer. Les résultats d'entreprises ne sont pas des offres d'emploi vérifiées.
-
-**Build et démarrage Docker non encore validés sur la machine cible.**
+La compilation et l'intégration Docker doivent encore être validées sur ton PC.
