@@ -1,5 +1,6 @@
 package fr.alternancehunter.model;
 import jakarta.persistence.*;
+import java.time.LocalDate;
 @Entity
 @Table(name="prospects")
 public class Prospect {
@@ -9,5 +10,9 @@ public class Prospect {
  public String city;
  public String activity;
  public String sourceUrl;
- public String status="A_CONTACTER";
+ @Column(nullable=false) public String status="A_CONTACTER";
+ @Column(length=4000) public String notes="";
+ public String contactName="";
+ public String contactEmail="";
+ public LocalDate nextFollowUp;
 }
