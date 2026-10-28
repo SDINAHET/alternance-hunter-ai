@@ -28,7 +28,7 @@ http.createServer(async(req,res)=>{
    await fs.mkdir(path.dirname(dbPath),{recursive:true}); await fs.writeFile(dbPath,JSON.stringify(db,null,2)); return json(res,200,db);
   }
   if(req.method!=='GET') return json(res,405,{error:'Method not allowed'});
-  const allowed={'/':'index.html','/index.html':'index.html','/app.js':'app.js','/style.css':'style.css'};
+  const allowed={'/':'index.html','/index.html':'index.html','/app.js':'app.js','/advanced.js':'advanced.js','/style.css':'style.css'};
   const name=allowed[url.pathname]; if(!name) return json(res,404,{error:'Not found'});
   const content=await fs.readFile(path.join(root,'public',name));
   res.writeHead(200,{'Content-Type':name.endsWith('.js')?'text/javascript; charset=utf-8':name.endsWith('.css')?'text/css; charset=utf-8':'text/html; charset=utf-8','X-Content-Type-Options':'nosniff'}); res.end(content);
