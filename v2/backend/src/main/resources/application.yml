@@ -1,0 +1,15 @@
+server:
+  port: ${SERVER_PORT:8099}
+  address: 127.0.0.1
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5436/hunter}
+    username: ${DB_USER:hunter}
+    password: ${DB_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+hunter:
+  ollama-url: ${OLLAMA_URL:http://localhost:11434}
+  ollama-model: ${OLLAMA_MODEL:qwen2.5:7b}
